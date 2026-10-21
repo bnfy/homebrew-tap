@@ -5,8 +5,7 @@ cask "blanc" do
   sha256 arm:   "38331a6cf265afd6e42115e8f8ea6ae33cf4e51e20d0d1d8e30a6f5cf24f0465",
          intel: "5318ebd1ade3fc0893608cd4673a4819675cc8f63a4fc207c446f837323ba697"
 
-  url "https://github.com/bnfy/blanc/releases/download/v#{version}/Blanc-#{version}#{arch}.dmg",
-      verified: "github.com/bnfy/blanc/"
+  url "https://github.com/bnfy/blanc/releases/download/v#{version}/Blanc-#{version}#{arch}.dmg"
   name "Blanc"
   desc "Minimal browser with built-in ad and tracker blocking"
   homepage "https://blanc.day/"
