@@ -6,12 +6,11 @@ Install [Blanc](https://blanc.day) on macOS 13 or later (Apple Silicon or Intel)
 brew install --cask bnfy/tap/blanc
 ```
 
-Already have Blanc from blanc.day or GitHub? Let Homebrew take over that copy
-instead of installing a second one:
-
-```sh
-brew install --cask --adopt bnfy/tap/blanc
-```
+Already have Blanc from blanc.day or GitHub? Quit it, move
+`/Applications/Blanc.app` to the Trash, then run the command above. Your tabs,
+Favorites and settings live in `~/Library/Application Support/Blanc`, so they
+stay. (`brew install --cask --adopt` also works, but only once your terminal app
+is allowed under System Settings → Privacy & Security → App Management.)
 
 The cask installs the same notarized DMG published on
 [GitHub Releases](https://github.com/bnfy/blanc/releases). Blanc updates itself
