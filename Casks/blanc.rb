@@ -1,5 +1,5 @@
 cask "blanc" do
-  arch arm: "-arm64", intel: ""
+  arch arm: "-arm64"
 
   version "1.40.0"
   sha256 arm:   "38331a6cf265afd6e42115e8f8ea6ae33cf4e51e20d0d1d8e30a6f5cf24f0465",
@@ -17,7 +17,7 @@ cask "blanc" do
   end
 
   auto_updates true
-  depends_on macos: ">= :ventura"
+  depends_on macos: :ventura
 
   app "Blanc.app"
 

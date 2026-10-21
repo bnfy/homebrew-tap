@@ -5,6 +5,7 @@
 #
 #   scripts/bump-blanc.sh            # newest published release
 #   scripts/bump-blanc.sh 1.41.0     # a specific release
+#   scripts/bump-blanc.sh --verify   # check the cask's own hashes, change nothing
 #
 # Writes changed=true|false and version=X.Y.Z to $GITHUB_OUTPUT when set.
 set -euo pipefail
@@ -20,7 +21,11 @@ output() { [ -n "${GITHUB_OUTPUT:-}" ] && echo "$1" >> "$GITHUB_OUTPUT"; return 
 current=$(sed -n 's/^  version "\(.*\)"$/\1/p' "$CASK")
 [ -n "$current" ] || { echo "Could not read the version in $CASK." >&2; exit 1; }
 
-if [ -n "${1:-}" ]; then
+verify=false
+if [ "${1:-}" = "--verify" ]; then
+  verify=true
+  version="$current"
+elif [ -n "${1:-}" ]; then
   version="${1#v}"
 else
   version=$(gh api "repos/$REPO/releases/latest" --jq .tag_name)
@@ -29,7 +34,7 @@ fi
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release version: $version" >&2; exit 1; }
 tag="v$version"
 
-if [ "$version" = "$current" ] || [ "$(printf '%s\n%s\n' "$current" "$version" | sort -V | tail -1)" = "$current" ]; then
+if ! $verify && { [ "$version" = "$current" ] || [ "$(printf '%s\n%s\n' "$current" "$version" | sort -V | tail -1)" = "$current" ]; }; then
   echo "Cask is at $current; $tag is not newer."
   output "changed=false"
   exit 0
@@ -63,6 +68,13 @@ signed_hash() {
 
 arm=$(signed_hash "Blanc-$version-arm64.dmg")
 intel=$(signed_hash "Blanc-$version.dmg")
+
+if $verify; then
+  grep -q "sha256 arm:   \"$arm\"," "$CASK" && grep -q "intel: \"$intel\"$" "$CASK" \
+    || { echo "$CASK hashes differ from the signed $tag checksums." >&2; exit 1; }
+  echo "$CASK matches the signed $tag checksums."
+  exit 0
+fi
 
 sed -i.bak \
   -e "s/^  version \".*\"$/  version \"$version\"/" \

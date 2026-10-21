@@ -10,6 +10,20 @@ permissions:
   contents: read
 
 jobs:
+  signature:
+    runs-on: macos-15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install cosign
+        run: brew install cosign
+
+      - name: Cask hashes match the signed release checksums
+        run: scripts/bump-blanc.sh --verify
+
   cask:
     strategy:
       fail-fast: false
