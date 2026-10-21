@@ -1,0 +1,45 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cask:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x64
+            runner: macos-15-intel
+    name: cask (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Link this checkout as the bnfy/tap tap
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/bnfy"
+          ln -s "$GITHUB_WORKSPACE" "$(brew --repository)/Library/Taps/bnfy/homebrew-tap"
+
+      - name: Style and audit
+        run: |
+          brew style Casks/blanc.rb
+          brew audit --cask --online --strict bnfy/tap/blanc
+
+      - name: Install, Gatekeeper check and uninstall
+        run: |
+          brew install --cask bnfy/tap/blanc
+          spctl --assess --type execute --verbose=2 /Applications/Blanc.app
+          test "$(lipo -archs /Applications/Blanc.app/Contents/MacOS/Blanc)" = "$(uname -m)"
+          brew uninstall --cask bnfy/tap/blanc

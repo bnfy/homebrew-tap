@@ -1,0 +1,71 @@
+name: bump
+
+# Follows Blanc's releases. Blanc publishes a release only once every asset,
+# SHA256SUMS and its Sigstore bundle exist, so the newest published release is
+# always complete.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Blanc version (default: newest published release)"
+        required: false
+  repository_dispatch:
+    types: [blanc-release]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: macos-15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install cosign
+        run: brew install cosign
+
+      - name: Move the cask to the release
+        id: bump
+        env:
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
+        run: scripts/bump-blanc.sh "$VERSION"
+
+      - name: Link this checkout as the bnfy/tap tap
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/bnfy"
+          ln -s "$GITHUB_WORKSPACE" "$(brew --repository)/Library/Taps/bnfy/homebrew-tap"
+
+      - name: Style and audit
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          brew style Casks/blanc.rb
+          brew audit --cask --online --strict bnfy/tap/blanc
+
+      - name: Install, launch check and uninstall
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          brew install --cask bnfy/tap/blanc
+          spctl --assess --type execute --verbose=2 /Applications/Blanc.app
+          brew uninstall --cask bnfy/tap/blanc
+
+      - name: Commit
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/blanc.rb
+          git commit -m "blanc $VERSION"
+          git push origin HEAD:main
