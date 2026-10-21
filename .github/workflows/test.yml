@@ -36,6 +36,7 @@ jobs:
     name: cask (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     env:
+      HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
       HOMEBREW_NO_AUTO_UPDATE: "1"
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
     steps:
