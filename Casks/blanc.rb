@@ -1,9 +1,9 @@
 cask "blanc" do
   arch arm: "-arm64"
 
-  version "1.44.1"
-  sha256 arm:   "e32c07fbe313b231302cb50bc085ab7dd3d08eae81ea644d0e735c11820d87c4",
-         intel: "701d643d01ba5cd14343921bbfd011163f686fb0bff187e82f5110f595300be7"
+  version "1.45.0"
+  sha256 arm:   "2799568ab473b34e521997e1c839ab98c5ff63d2bcbb50ec2041f87445fffbbf",
+         intel: "2b7aa164cd568ce92b68c77c80eab059ee6fc9c07e12fdb6136c8bb6f08bb940"
 
   url "https://github.com/bnfy/blanc/releases/download/v#{version}/Blanc-#{version}#{arch}.dmg"
   name "Blanc"
