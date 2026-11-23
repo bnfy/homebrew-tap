@@ -47,6 +47,12 @@ jobs:
           mkdir -p "$(brew --repository)/Library/Taps/bnfy"
           ln -s "$GITHUB_WORKSPACE" "$(brew --repository)/Library/Taps/bnfy/homebrew-tap"
 
+      # Homebrew 7 refuses to load casks from a tap nobody has trusted, and
+      # unlike install, audit does not trust a fully qualified name by itself.
+      - name: Trust the blanc cask
+        if: steps.bump.outputs.changed == 'true'
+        run: brew trust --cask bnfy/tap/blanc
+
       - name: Style and audit
         if: steps.bump.outputs.changed == 'true'
         run: |
